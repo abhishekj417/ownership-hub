@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seddiqi Ownership Hub</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="logo-mark">⏱️</span>
+      <span class="logo-text">Seddiqi Ownership Hub</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn" data-view="portfolio">Portfolio</button>
+      <button class="nav-btn" data-view="services">Services</button>
+      <button class="nav-btn" data-view="profile">Profile</button>
+    </nav>
+  </header>
+
+  <main id="app-root">
+    <!-- Views are injected by app.js -->
+  </main>
+
+  <template id="portfolio-view">
+    <section class="section">
+      <h1>Your Collection</h1>
+      <p class="section-subtitle">Track your watches and their service health at a glance.</p>
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Pieces</span>
+          <span class="kpi-value" id="kpi-total-pieces">0</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Estimated Value (AED)</span>
+          <span class="kpi-value" id="kpi-total-value">0</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Average Health Score</span>
+          <span class="kpi-value" id="kpi-avg-health">0</span>
+        </div>
+      </div>
+      <div id="watch-list" class="grid"></div>
+    </section>
+  </template>
+
+  <template id="services-view">
+    <section class="section">
+      <h1>Service Bouquet</h1>
+      <p class="section-subtitle">Book white glove service, authentication, insurance and more.</p>
+      <div class="grid" id="service-list"></div>
+    </section>
+  </template>
+
+  <template id="profile-view">
+    <section class="section">
+      <h1>Your Profile</h1>
+      <p class="section-subtitle">Manage membership tier and notification preferences.</p>
+      <div class="profile-card">
+        <h2>Ahmed Collector</h2>
+        <p class="pill pill-tier">Tier: Connoisseur</p>
+        <div class="profile-detail-row">
+          <span>Location</span>
+          <span>Dubai, UAE</span>
+        </div>
+        <div class="profile-detail-row">
+          <span>Service Nudges</span>
+          <label class="switch">
+            <input type="checkbox" id="toggle-nudges" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <div id="modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content" role="dialog" aria-modal="true">
+      <button class="modal-close" aria-label="Close">×</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>
