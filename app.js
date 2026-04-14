@@ -1,355 +1,304 @@
 const watches = [
   {
     id: 1,
-    brand: "Rolex",
-    model: "Submariner Date",
-    ref: "126610LN",
-    serial: "RXL-9283",
+    brand: 'Rolex',
+    model: 'Submariner Date',
+    ref: '126610LN',
+    serial: 'RXL-9283',
     health: 82,
-    lastService: "2019-11-03",
+    lastService: '3 Nov 2019',
     valueAED: 51000,
-    servicesDue: ["Water resistance test", "Bracelet polish"],
+    servicesDue: ['Water resistance test', 'Bracelet polish'],
   },
   {
     id: 2,
-    brand: "Patek Philippe",
-    model: "Aquanaut",
-    ref: "5167A-001",
-    serial: "PTK-4411",
+    brand: 'Patek Philippe',
+    model: 'Aquanaut',
+    ref: '5167A-001',
+    serial: 'PTK-4411',
     health: 63,
-    lastService: "2018-02-17",
+    lastService: '17 Feb 2018',
     valueAED: 285000,
-    servicesDue: ["Complete overhaul", "Authentication certificate"],
+    servicesDue: ['Complete overhaul', 'Authentication certificate'],
   },
   {
     id: 3,
-    brand: "Audemars Piguet",
-    model: "Royal Oak",
-    ref: "15500ST",
-    serial: "AP-7719",
+    brand: 'Audemars Piguet',
+    model: 'Royal Oak',
+    ref: '15500ST',
+    serial: 'AP-7719',
     health: 45,
-    lastService: "2016-07-25",
+    lastService: '25 Jul 2016',
     valueAED: 210000,
-    servicesDue: ["Complete overhaul", "Case & bracelet refinish"],
+    servicesDue: ['Complete overhaul', 'Case & bracelet refinish'],
   },
 ];
 
 const services = [
   {
-    id: "health",
-    title: "Watch Health & Servicing",
-    description:
-      "See health scores, service intervals and book partial or complete overhaul directly into Swiss Watch Services.",
-    tag: "Core",
+    id: 'health',
+    title: 'Watch Health & Servicing',
+    description: 'View health scores and service intervals. Book partial or complete overhauls directly into Swiss Watch Services with one tap.',
+    tag: 'Core',
   },
   {
-    id: "white-glove",
-    title: "White Glove Pickup",
-    description:
-      "Doorstep pickup and return for any service booking within Dubai, with insured transit and real-time tracking.",
-    tag: "Convenience",
+    id: 'white-glove',
+    title: 'White Glove Pickup',
+    description: 'Doorstep pickup and return for any service booking within Dubai — insured transit and real-time courier tracking included.',
+    tag: 'Convenience',
   },
   {
-    id: "authentication",
-    title: "Authentication & Condition Certificate",
-    description:
-      "Seddiqi-issued certificate confirming authenticity, movement originality and condition rating for insurance or resale.",
-    tag: "Trust",
+    id: 'authentication',
+    title: 'Authentication Certificate',
+    description: 'Seddiqi-issued certificate confirming authenticity, movement originality and condition rating — ideal for insurance or resale.',
+    tag: 'Trust',
   },
   {
-    id: "insurance",
-    title: "Insurance & Appraisal",
-    description:
-      "Request a valuation, receive partner insurance quotes, and store policy documents inside the digital safe.",
-    tag: "Protection",
+    id: 'insurance',
+    title: 'Insurance & Appraisal',
+    description: 'Request a valuation, receive partner insurance quotes, and store all policy documents inside your personal digital safe.',
+    tag: 'Protection',
   },
   {
-    id: "cpo",
-    title: "CPO Trade-In & Upgrade",
-    description:
-      "Get a binding trade-in offer and apply credit towards a new purchase or certified pre-owned piece.",
-    tag: "Upgrade",
+    id: 'cpo',
+    title: 'CPO Trade-In & Upgrade',
+    description: 'Get a binding trade-in offer and apply the credit directly towards a new purchase or a certified pre-owned timepiece.',
+    tag: 'Upgrade',
   },
   {
-    id: "spa",
-    title: "Watch Spa & Cosmetic Care",
-    description:
-      "Crystal polish, five-level case & bracelet finishing, and water resistance re-testing between full services.",
-    tag: "Aesthetics",
+    id: 'spa',
+    title: 'Watch Spa & Cosmetic Care',
+    description: 'Crystal polish, five-level case & bracelet finishing, and water resistance re-testing — between full service intervals.',
+    tag: 'Aesthetics',
   },
 ];
 
-const appRoot = document.getElementById("app-root");
-const modalEl = document.getElementById("modal");
-const modalBody = document.getElementById("modal-body");
-const modalClose = document.querySelector(".modal-close");
+// ── DOM refs ────────────────────────────────────────────
+const appRoot   = document.getElementById('app-root');
+const modalEl   = document.getElementById('modal');
+const modalBody = document.getElementById('modal-body');
 
+// ── Helpers ─────────────────────────────────────────────
+const formatAED = v =>
+  new Intl.NumberFormat('en-AE', { style: 'decimal', maximumFractionDigits: 0 }).format(v);
+
+const healthClass = s => s >= 75 ? 'good' : s >= 55 ? 'warn' : 'bad';
+const healthLabel = s => s >= 75 ? 'Excellent' : s >= 55 ? 'Service Due' : 'Overhaul Needed';
+
+// ── Render template ──────────────────────────────────────
 function renderTemplate(id) {
   const tpl = document.getElementById(id);
   if (!tpl) return;
-  appRoot.innerHTML = "";
+  appRoot.innerHTML = '';
   appRoot.appendChild(tpl.content.cloneNode(true));
 }
 
-function formatAED(value) {
-  return new Intl.NumberFormat("en-AE", {
-    style: "decimal",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-function healthClass(score) {
-  if (score >= 75) return "good";
-  if (score >= 55) return "warn";
-  return "bad";
-}
-
+// ── Portfolio view ───────────────────────────────────────
 function initPortfolio() {
-  const totalPieces = watches.length;
-  const totalValue = watches.reduce((sum, w) => sum + w.valueAED, 0);
-  const avgHealth =
-    totalPieces === 0
-      ? 0
-      : Math.round(
-          watches.reduce((sum, w) => sum + w.health, 0) / totalPieces
-        );
+  const total   = watches.length;
+  const value   = watches.reduce((s, w) => s + w.valueAED, 0);
+  const avg     = total ? Math.round(watches.reduce((s, w) => s + w.health, 0) / total) : 0;
+  const overdue = watches.filter(w => w.health < 65).length;
 
-  document.getElementById("kpi-total-pieces").textContent = totalPieces;
-  document.getElementById("kpi-total-value").textContent = formatAED(totalValue);
-  document.getElementById("kpi-avg-health").textContent = `${avgHealth}`;
+  document.getElementById('kpi-total-pieces').textContent = total;
+  document.getElementById('kpi-total-value').textContent  = formatAED(value);
+  document.getElementById('kpi-avg-health').textContent   = avg;
+  document.getElementById('kpi-overdue').textContent      = overdue;
 
-  const list = document.getElementById("watch-list");
-  watches.forEach((watch) => {
-    const card = document.createElement("article");
-    card.className = "card";
+  const list = document.getElementById('watch-list');
+  watches.forEach(w => {
+    const hc   = healthClass(w.health);
+    const card = document.createElement('article');
+    card.className = 'watch-card';
     card.innerHTML = `
-      <div class="card-header">
+      <div class="watch-card-top">
         <div>
-          <div class="card-title">${watch.brand} ${watch.model}</div>
-          <div class="card-subtitle">Ref. ${watch.ref}</div>
+          <div class="watch-brand">${w.brand}</div>
+          <div class="watch-model">${w.model}</div>
+          <div class="watch-ref">Ref. ${w.ref}</div>
         </div>
-        <span class="health-pill ${healthClass(watch.health)}">Health ${
-      watch.health
-    }/100</span>
+        <span class="health-badge ${hc}">${healthLabel(w.health)}</span>
       </div>
-      <div class="meta-row">
-        <span>Last service</span>
-        <span>${watch.lastService}</span>
+      <div class="watch-card-mid">
+        <div class="meta-line"><span>Last service</span><span>${w.lastService}</span></div>
+        <div class="meta-line"><span>Est. value</span><span>AED ${formatAED(w.valueAED)}</span></div>
+        <div class="health-bar-wrap">
+          <div class="health-bar-label">
+            <span>Health score</span><span>${w.health}/100</span>
+          </div>
+          <div class="health-bar">
+            <div class="health-bar-fill ${hc}" style="width:${w.health}%"></div>
+          </div>
+        </div>
       </div>
-      <div class="meta-row">
-        <span>Value</span>
-        <span>AED ${formatAED(watch.valueAED)}</span>
+      <div class="watch-card-tags">
+        ${w.servicesDue.map(s => `<span class="tag">${s}</span>`).join('')}
       </div>
-      <div class="chip-row">
-        ${watch.servicesDue
-          .map((s) => `<span class="chip">${s}</span>`)
-          .join("")}
-      </div>
-      <div class="card-actions">
-        <button class="btn btn-ghost" data-action="view-safe" data-id="${
-          watch.id
-        }">Digital Safe</button>
-        <button class="btn btn-primary" data-action="book-service" data-id="${
-          watch.id
-        }">Book Service</button>
+      <div class="watch-card-actions">
+        <button class="btn btn-ghost" data-action="view-safe" data-id="${w.id}">Digital Safe</button>
+        <button class="btn btn-primary" data-action="book-service" data-id="${w.id}">Book Service</button>
       </div>
     `;
-
-    card.addEventListener("click", (e) => {
+    card.addEventListener('click', e => {
       const action = e.target.dataset.action;
       if (!action) return;
-      const id = Number(e.target.dataset.id);
-      const w = watches.find((x) => x.id === id);
-      if (!w) return;
-      if (action === "view-safe") openDigitalSafe(w);
-      if (action === "book-service") openServiceBooking(w);
+      const watch = watches.find(x => x.id === Number(e.target.dataset.id));
+      if (!watch) return;
+      if (action === 'view-safe')    openDigitalSafe(watch);
+      if (action === 'book-service') openServiceBooking(watch);
     });
-
     list.appendChild(card);
   });
 }
 
+// ── Services view ────────────────────────────────────────
 function initServices() {
-  const list = document.getElementById("service-list");
-  services.forEach((svc) => {
-    const card = document.createElement("article");
-    card.className = "card service-card";
+  const list = document.getElementById('service-list');
+  services.forEach(svc => {
+    const card = document.createElement('article');
+    card.className = 'service-card';
     card.innerHTML = `
-      <div class="card-header">
-        <h3>${svc.title}</h3>
-        <span class="pill">${svc.tag}</span>
-      </div>
-      <p>${svc.description}</p>
-      <div class="card-actions">
-        <button class="btn btn-primary" data-service="${svc.id}">Explore</button>
+      <span class="service-tag-pill">${svc.tag}</span>
+      <div class="service-title">${svc.title}</div>
+      <p class="service-desc">${svc.description}</p>
+      <div>
+        <button class="btn btn-ghost" data-service="${svc.id}">Learn more</button>
       </div>
     `;
-
-    card
-      .querySelector("[data-service]")
-      .addEventListener("click", () => openServiceDetail(svc));
-
+    card.querySelector('[data-service]').addEventListener('click', () => openServiceDetail(svc));
     list.appendChild(card);
   });
 }
 
-function openModal(contentHtml) {
-  modalBody.innerHTML = contentHtml;
-  modalEl.classList.remove("hidden");
-  modalEl.setAttribute("aria-hidden", "false");
+// ── Modal helpers ────────────────────────────────────────
+function openModal(html) {
+  modalBody.innerHTML = html;
+  modalEl.classList.remove('hidden');
+  modalEl.setAttribute('aria-hidden', 'false');
 }
-
 function closeModal() {
-  modalEl.classList.add("hidden");
-  modalEl.setAttribute("aria-hidden", "true");
+  modalEl.classList.add('hidden');
+  modalEl.setAttribute('aria-hidden', 'true');
 }
 
-modalClose.addEventListener("click", closeModal);
-modalEl.addEventListener("click", (e) => {
-  if (e.target.classList.contains("modal-backdrop")) closeModal();
-});
+document.querySelector('.modal-close').addEventListener('click', closeModal);
+modalEl.addEventListener('click', e => { if (e.target.classList.contains('modal-backdrop')) closeModal(); });
 
-function openDigitalSafe(watch) {
-  const html = `
-    <h2>${watch.brand} ${watch.model}</h2>
-    <p class="modal-subtitle">Digital Safe · Ref. ${watch.ref} · Serial ${
-    watch.serial
-  }</p>
-
+// ── Digital safe modal ───────────────────────────────────
+function openDigitalSafe(w) {
+  openModal(`
+    <div class="modal-title">${w.brand} ${w.model}</div>
+    <div class="modal-subtitle">Digital Safe · Ref. ${w.ref} · Serial ${w.serial}</div>
     <div class="modal-section">
-      <div class="modal-section-title">Core details</div>
-      <div class="modal-row"><span>Brand</span><span>${watch.brand}</span></div>
-      <div class="modal-row"><span>Reference</span><span>${watch.ref}</span></div>
-      <div class="modal-row"><span>Serial</span><span>${watch.serial}</span></div>
-      <div class="modal-row"><span>Last service</span><span>$${
-        watch.lastService
-      }</span></div>
-      <div class="modal-row"><span>Health score</span><span>${
-        watch.health
-      } / 100</span></div>
-      <div class="modal-row"><span>Estimated value</span><span>AED ${formatAED(
-        watch.valueAED
-      )}</span></div>
+      <div class="modal-section-title">Core Details</div>
+      <div class="modal-row"><span>Brand</span><span>${w.brand}</span></div>
+      <div class="modal-row"><span>Reference</span><span>${w.ref}</span></div>
+      <div class="modal-row"><span>Serial</span><span>${w.serial}</span></div>
+      <div class="modal-row"><span>Last service</span><span>${w.lastService}</span></div>
+      <div class="modal-row"><span>Health score</span><span>${w.health}/100</span></div>
+      <div class="modal-row"><span>Est. value</span><span>AED ${formatAED(w.valueAED)}</span></div>
     </div>
-
     <div class="modal-section">
-      <div class="modal-section-title">Services due</div>
-      ${watch.servicesDue
-        .map(
-          (s) =>
-            `<div class="modal-row"><span>·</span><span>${s}</span></div>`
-        )
-        .join("")}
+      <div class="modal-section-title">Services Due</div>
+      ${w.servicesDue.map(s => `<div class="modal-row"><span>${s}</span><span>Pending</span></div>`).join('')}
     </div>
-
-    <div class="card-actions" style="margin-top: 0.9rem; justify-content: flex-end;">
-      <button class="btn btn-ghost" id="digital-safe-close">Close</button>
-      <button class="btn btn-primary" id="digital-safe-book">Book Service</button>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="safe-close">Close</button>
+      <button class="btn btn-primary" id="safe-book">Book Service</button>
     </div>
-  `;
-  openModal(html);
-  document
-    .getElementById("digital-safe-close")
-    .addEventListener("click", closeModal);
-  document
-    .getElementById("digital-safe-book")
-    .addEventListener("click", () => {
-      closeModal();
-      openServiceBooking(watch);
-    });
+  `);
+  document.getElementById('safe-close').addEventListener('click', closeModal);
+  document.getElementById('safe-book').addEventListener('click', () => { closeModal(); openServiceBooking(w); });
 }
 
-function openServiceBooking(watch) {
-  const html = `
-    <h2>Book Service · ${watch.brand} ${watch.model}</h2>
-    <p class="modal-subtitle">Select the service you need and we'll route it to Swiss Watch Services.</p>
-
+// ── Service booking modal ────────────────────────────────
+function openServiceBooking(w) {
+  openModal(`
+    <div class="modal-title">Book Service</div>
+    <div class="modal-subtitle">${w.brand} ${w.model} · ${w.ref}</div>
     <div class="modal-section">
-      <div class="modal-section-title">Recommended based on health score</div>
-      <div class="modal-row"><span>Health</span><span>${watch.health} / 100</span></div>
-      <div class="modal-row"><span>Last service</span><span>${
-        watch.lastService
-      }</span></div>
+      <div class="modal-section-title">Watch Condition</div>
+      <div class="modal-row"><span>Health score</span><span>${w.health}/100 — ${healthLabel(w.health)}</span></div>
+      <div class="modal-row"><span>Last service</span><span>${w.lastService}</span></div>
     </div>
-
     <div class="modal-section">
-      <div class="modal-section-title">Choose service</div>
-      <div class="modal-row"><span><input type="radio" name="svc" value="partial" checked /> Partial service</span><span>2–3 weeks</span></div>
-      <div class="modal-row"><span><input type="radio" name="svc" value="complete" /> Complete overhaul</span><span>4–6 weeks</span></div>
-      <div class="modal-row"><span><input type="radio" name="svc" value="spa" /> Cosmetic spa only</span><span>5–7 days</span></div>
+      <div class="modal-section-title">Choose Service</div>
+      <div class="modal-row"><label><input type="radio" name="svc" value="partial" checked /> Partial service</label><span>2–3 weeks</span></div>
+      <div class="modal-row"><label><input type="radio" name="svc" value="complete" /> Complete overhaul</label><span>4–6 weeks</span></div>
+      <div class="modal-row"><label><input type="radio" name="svc" value="spa" /> Cosmetic spa only</label><span>5–7 days</span></div>
     </div>
-
     <div class="modal-section">
-      <div class="modal-section-title">Pickup</div>
-      <div class="modal-row"><span><input type="checkbox" id="white-glove" checked /> White glove pickup in Dubai</span><span>Included</span></div>
+      <div class="modal-section-title">Collection</div>
+      <div class="modal-row"><label><input type="checkbox" checked /> White glove pickup — Dubai</label><span>Included</span></div>
     </div>
-
-    <div class="card-actions" style="margin-top: 0.9rem; justify-content: flex-end;">
+    <div class="modal-actions">
       <button class="btn btn-ghost" id="svc-cancel">Cancel</button>
-      <button class="btn btn-primary" id="svc-confirm">Confirm request</button>
+      <button class="btn btn-primary" id="svc-confirm">Confirm Request</button>
     </div>
-  `;
-  openModal(html);
-  document.getElementById("svc-cancel").addEventListener("click", closeModal);
-  document.getElementById("svc-confirm").addEventListener("click", () => {
-    alert(
-      "Service request submitted. A Seddiqi concierge will contact you to confirm timing."
-    );
+  `);
+  document.getElementById('svc-cancel').addEventListener('click', closeModal);
+  document.getElementById('svc-confirm').addEventListener('click', () => {
     closeModal();
+    alert('Service request submitted. A Seddiqi concierge will contact you to confirm timing.');
   });
 }
 
-function openServiceDetail(service) {
-  const html = `
-    <h2>${service.title}</h2>
-    <p class="modal-subtitle">${service.description}</p>
+// ── Service detail modal ─────────────────────────────────
+function openServiceDetail(svc) {
+  openModal(`
+    <div class="modal-title">${svc.title}</div>
+    <div class="modal-subtitle">Service category · ${svc.tag}</div>
+    <div class="modal-section">
+      <div class="modal-section-title">About this service</div>
+      <p style="font-size:13px;line-height:1.7;color:var(--text-muted);">${svc.description}</p>
+    </div>
     <div class="modal-section">
       <div class="modal-section-title">How it works</div>
-      <p style="font-size: 0.8rem; line-height: 1.6; color: var(--text-muted);">
-        This is a front-end prototype. In a production build, this flow would connect to
-        Seddiqi's booking, logistics, insurance and CPO systems. You can extend this
-        screen into a full wizard: intake details, pickup preferences, and confirmation.
-      </p>
+      <p style="font-size:13px;line-height:1.7;color:var(--text-muted);">In a live build, this flow connects to Seddiqi's booking, logistics, insurance and CPO systems. This screen expands into a full wizard — intake details, pickup preferences, and booking confirmation.</p>
     </div>
-    <div class="card-actions" style="margin-top: 0.9rem; justify-content: flex-end;">
+    <div class="modal-actions">
       <button class="btn btn-ghost" id="svc-detail-close">Close</button>
+      <button class="btn btn-primary" id="svc-detail-book">Book Now</button>
     </div>
-  `;
-  openModal(html);
-  document
-    .getElementById("svc-detail-close")
-    .addEventListener("click", closeModal);
-}
-
-function setActiveNav(view) {
-  document.querySelectorAll(".nav-btn").forEach((btn) => {
-    if (btn.dataset.view === view) btn.classList.add("active");
-    else btn.classList.remove("active");
+  `);
+  document.getElementById('svc-detail-close').addEventListener('click', closeModal);
+  document.getElementById('svc-detail-book').addEventListener('click', () => {
+    closeModal();
+    alert('Redirecting to booking flow for: ' + svc.title);
   });
 }
 
-function initNavigation() {
-  const navButtons = document.querySelectorAll(".nav-btn");
-  navButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const view = btn.dataset.view;
-      loadView(view);
-    });
-  });
-}
-
+// ── Navigation ───────────────────────────────────────────
 function loadView(view) {
-  if (view === "portfolio") {
-    renderTemplate("portfolio-view");
+  if (view === 'portfolio') {
+    renderTemplate('portfolio-view');
     initPortfolio();
-  } else if (view === "services") {
-    renderTemplate("services-view");
+  } else if (view === 'services') {
+    renderTemplate('services-view');
     initServices();
-  } else if (view === "profile") {
-    renderTemplate("profile-view");
+  } else if (view === 'profile') {
+    renderTemplate('profile-view');
   }
-  setActiveNav(view);
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === view);
+  });
 }
 
-initNavigation();
-loadView("portfolio");
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => loadView(btn.dataset.view));
+});
+
+// ── Mobile sidebar toggle ─────────────────────────────────
+const sidebar   = document.getElementById('sidebar');
+const hamburger = document.getElementById('hamburger');
+if (hamburger && sidebar) {
+  hamburger.addEventListener('click', () => sidebar.classList.toggle('open'));
+  document.addEventListener('click', e => {
+    if (!sidebar.contains(e.target) && !hamburger.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+}
+
+// ── Boot ─────────────────────────────────────────────────
+loadView('portfolio');
